@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wait… don't enter 👀</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --neon-blue: #00d4ff;
+    --neon-purple: #bf5fff;
+    --neon-pink: #ff2d78;
+    --bg: #050508;
+    --glow-blue: 0 0 10px #00d4ff, 0 0 30px rgba(0,212,255,0.33), 0 0 60px rgba(0,212,255,0.13);
+    --glow-purple: 0 0 10px #bf5fff, 0 0 30px rgba(191,95,255,0.33), 0 0 60px rgba(191,95,255,0.13);
+    --glow-pink: 0 0 10px #ff2d78, 0 0 30px rgba(255,45,120,0.33);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    font-family: 'Poppins', sans-serif;
+    color: #fff;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+    cursor: default;
+  }
+
+  /* PAGE SYSTEM */
+  .page {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.7s ease;
+    text-align: center;
+    z-index: 1;
+  }
+  .page.active { opacity: 1; pointer-events: all; }
+
+  /* GRID BG */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    z-index: 0; pointer-events: none;
+  }
+
+  /* ORBS */
+  .orb { position: fixed; border-radius: 50%; filter: blur(80px); opacity: 0.15; z-index: 0; pointer-events: none; animation: drift 12s ease-in-out infinite alternate; }
+  .orb1 { width:400px;height:400px;background:#00d4ff;top:-100px;left:-100px;animation-delay:0s; }
+  .orb2 { width:300px;height:300px;background:#bf5fff;bottom:-80px;right:-80px;animation-delay:-4s; }
+  .orb3 { width:200px;height:200px;background:#ff2d78;top:50%;left:50%;animation-delay:-8s; }
+  @keyframes drift { from{transform:translate(0,0) scale(1)} to{transform:translate(30px,20px) scale(1.1)} }
+
+  /* TYPOGRAPHY */
+  .big-title { font-family:'Montserrat',sans-serif; font-size:clamp(2rem,6vw,4rem); font-weight:900; letter-spacing:-1px; line-height:1.1; margin-bottom:20px; position:relative; z-index:1; }
+  .sub-text { font-size:clamp(1rem,2.5vw,1.35rem); font-weight:300; color:rgba(255,255,255,0.7); margin-bottom:16px; position:relative; z-index:1; line-height:1.6; }
+  .neon-blue   { color:var(--neon-blue);   text-shadow:var(--glow-blue); }
+  .neon-purple { color:var(--neon-purple);  text-shadow:var(--glow-purple); }
+  .neon-pink   { color:var(--neon-pink);    text-shadow:var(--glow-pink); }
+
+  /* BUTTONS */
+  .btn { position:relative; z-index:2; margin:10px; padding:14px 36px; font-family:'Poppins',sans-serif; font-size:1rem; font-weight:600; border:none; border-radius:50px; cursor:pointer; transition:all 0.3s ease; letter-spacing:0.5px; }
+  .btn-primary { background:transparent; color:var(--neon-blue); border:2px solid var(--neon-blue); box-shadow:var(--glow-blue),inset 0 0 20px rgba(0,212,255,0.05); }
+  .btn-primary:hover { background:rgba(0,212,255,0.1); box-shadow:0 0 20px #00d4ff,0 0 50px rgba(0,212,255,0.47),inset 0 0 30px rgba(0,212,255,0.1); transform:translateY(-2px) scale(1.04); }
+  .btn-secondary { background:transparent; color:rgba(255,255,255,0.4); border:2px solid rgba(255,255,255,0.15); font-size:0.85rem; }
+  .btn-secondary:hover { color:rgba(255,255,255,0.7); border-color:rgba(255,255,255,0.3); }
+  .btn-purple { background:transparent; color:var(--neon-purple); border:2px solid var(--neon-purple); box-shadow:var(--glow-purple); }
+  .btn-purple:hover { background:rgba(191,95,255,0.1); box-shadow:0 0 20px #bf5fff,0 0 50px rgba(191,95,255,0.47); transform:translateY(-2px) scale(1.04); }
+  .btn-pink { background:transparent; color:var(--neon-pink); border:2px solid var(--neon-pink); box-shadow:var(--glow-pink); }
+  .btn-pink:hover { background:rgba(255,45,120,0.1); transform:translateY(-2px) scale(1.04); }
+  .btn-row { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; position:relative; z-index:2; }
+
+  /* DIVIDER */
+  .divider { width:80px; height:2px; background:linear-gradient(90deg,transparent,var(--neon-blue),transparent); margin:20px auto; position:relative; z-index:1; }
+
+  /* EYE */
+  .eye-icon { font-size:4rem; animation:blink 3s ease-in-out infinite; display:block; margin-bottom:20px; position:relative; z-index:1; }
+  @keyframes blink { 0%,90%,100%{opacity:1;transform:scaleY(1)} 95%{opacity:0.1;transform:scaleY(0.1)} }
+
+  /* RUNAWAY BUTTON — default relative, JS overrides to fixed only on page 4 */
+  #runaway-btn { position:relative; z-index:10; transition:top 0.15s ease,left 0.15s ease; }
+
+  /* POPUP */
+  #fake-warning { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#0a0a12; border:2px solid var(--neon-pink); box-shadow:var(--glow-pink),0 20px 60px rgba(0,0,0,0.8); padding:32px 40px; border-radius:16px; z-index:999; text-align:center; display:none; min-width:280px; }
+  #fake-warning h3 { font-size:1.3rem; color:var(--neon-pink); margin-bottom:12px; }
+  #fake-warning p  { font-size:0.9rem; color:rgba(255,255,255,0.6); margin-bottom:20px; }
+  #fake-warning .btn { display:block; width:100%; margin:6px 0; }
+  .overlay { position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:998; display:none; }
+
+  /* FAKE LOADING */
+  #fake-loading { position:fixed; inset:0; background:var(--bg); z-index:997; flex-direction:column; align-items:center; justify-content:center; display:none; }
+  .loading-bar-wrap { width:280px; height:4px; background:rgba(255,255,255,0.1); border-radius:4px; overflow:hidden; margin:20px 0; }
+  .loading-bar { height:100%; width:0%; background:linear-gradient(90deg,var(--neon-blue),var(--neon-purple)); border-radius:4px; box-shadow:0 0 10px var(--neon-blue); transition:width 0.1s linear; }
+  .loading-text { font-size:0.85rem; color:rgba(255,255,255,0.5); }
+
+  /* CONFETTI */
+  .confetti-piece { position:fixed; opacity:0; pointer-events:none; z-index:200; animation:confettiFall linear forwards; }
+  @keyframes confettiFall { 0%{transform:translateY(-20px) rotate(0deg);opacity:1} 100%{transform:translateY(110vh) rotate(720deg);opacity:0} }
+
+  /* PHOTO FRAME */
+  .photo-frame { width:130px; height:130px; border-radius:50%; border:3px solid var(--neon-purple); box-shadow:var(--glow-purple),0 0 0 8px rgba(191,95,255,0.1); overflow:hidden; margin:0 auto 24px; position:relative; z-index:1; background:rgba(191,95,255,0.1); display:flex; align-items:center; justify-content:center; font-size:3.5rem; animation:pulse-glow 2s ease-in-out infinite alternate; }
+  @keyframes pulse-glow { from{box-shadow:var(--glow-purple),0 0 0 8px rgba(191,95,255,0.1)} to{box-shadow:0 0 20px #bf5fff,0 0 60px rgba(191,95,255,0.6),0 0 0 12px rgba(191,95,255,0.2)} }
+
+  /* COMPLIMENTS */
+  .compliment-list { list-style:none; margin:10px 0 24px; position:relative; z-index:1; }
+  .compliment-list li { font-size:1.1rem; padding:8px 0; color:rgba(255,255,255,0.85); border-bottom:1px solid rgba(255,255,255,0.07); opacity:0; transform:translateX(-20px); transition:all 0.5s ease; }
+  .compliment-list li.show { opacity:1; transform:translateX(0); }
+  .compliment-list li span { color:var(--neon-blue); }
+
+  /* FINAL NAME */
+  .final-name { font-family:'Montserrat',sans-serif; font-size:clamp(2.5rem,9vw,6rem); font-weight:900; background:linear-gradient(135deg,var(--neon-blue),var(--neon-purple),var(--neon-pink)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; filter:drop-shadow(0 0 30px rgba(191,95,255,0.5)); animation:shimmer 3s ease-in-out infinite alternate; line-height:1.1; }
+  @keyframes shimmer { from{filter:drop-shadow(0 0 20px rgba(0,212,255,0.5))} to{filter:drop-shadow(0 0 40px rgba(255,45,120,0.5))} }
+
+  /* MEMORY CARDS */
+  .memory-card { background:rgba(255,255,255,0.03); border:1px solid rgba(0,212,255,0.15); border-radius:12px; padding:16px 24px; margin:8px 0; position:relative; z-index:1; font-size:0.95rem; color:rgba(255,255,255,0.7); text-align:left; max-width:420px; transition:all 0.3s ease; }
+  .memory-card:hover { border-color:rgba(0,212,255,0.35); background:rgba(0,212,255,0.04); }
+  .memory-card::before { content:'"'; color:var(--neon-blue); font-size:2rem; line-height:0.5; display:block; margin-bottom:8px; opacity:0.5; }
+
+  /* COSMIC */
+  .cosmic-text { font-size:clamp(1.1rem,3vw,1.6rem); font-weight:300; color:rgba(255,255,255,0.8); margin:8px 0; position:relative; z-index:1; opacity:0; transform:translateY(10px); transition:all 0.6s ease; }
+  .cosmic-text.show { opacity:1; transform:translateY(0); }
+
+  /* STARS */
+  .stars { position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0; transition:opacity 1s ease; }
+  .stars.show { opacity:1; }
+  .star { position:absolute; background:#fff; border-radius:50%; animation:twinkle 3s ease-in-out infinite alternate; }
+  @keyframes twinkle { from{opacity:0.1;transform:scale(1)} to{opacity:0.7;transform:scale(1.5)} }
+
+  /* SCANLINES */
+  body::after { content:''; position:fixed; inset:0; background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.08) 2px,rgba(0,0,0,0.08) 4px); z-index:500; pointer-events:none; }
+
+  /* DOTS */
+  .page-dots { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); display:flex; gap:6px; z-index:600; }
+  .dot { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,0.2); transition:all 0.3s ease; }
+  .dot.active { background:var(--neon-blue); box-shadow:0 0 6px var(--neon-blue); transform:scale(1.4); }
+
+  /* FADE IN UP */
+  @keyframes fadeInUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+  .page.active .big-title { animation:fadeInUp 0.7s ease forwards; }
+  .page.active .sub-text  { animation:fadeInUp 0.7s 0.15s ease both; }
+  .page.active .btn-row   { animation:fadeInUp 0.7s 0.3s ease both; }
+  .page.active .btn       { animation:fadeInUp 0.7s 0.3s ease both; }
+  .page.active .divider   { animation:fadeInUp 0.7s 0.1s ease both; }
+
+  /* GLITCH */
+  .glitch { position:relative; }
+  .glitch::before,.glitch::after { content:attr(data-text); position:absolute; left:0; top:0; width:100%; opacity:0.06; }
+  .glitch::before { color:#ff2d78; animation:glitch1 4s infinite; }
+  .glitch::after  { color:#00d4ff; animation:glitch2 4s infinite; }
+  @keyframes glitch1 { 0%,94%,96%,100%{transform:translate(0)} 95%{transform:translate(-3px,1px)} }
+  @keyframes glitch2 { 0%,94%,96%,100%{transform:translate(0)} 95%{transform:translate(3px,-1px)} }
+
+  /* EMOJI FLOAT */
+  .emoji-big { font-size:3.5rem; display:block; margin-bottom:16px; position:relative; z-index:1; animation:float 3s ease-in-out infinite; }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+
+  /* SHAKE */
+  @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-10px) rotate(-2deg)} 40%{transform:translateX(10px) rotate(2deg)} 60%{transform:translateX(-6px) rotate(-1deg)} 80%{transform:translateX(6px) rotate(1deg)} }
+  .shake { animation:shake 0.5s ease; }
+
+  /* CHOICE */
+  .choice-glow { transition:all 0.4s ease; }
+  .choice-glow:hover { transform:scale(1.08) translateY(-4px); }
+
+  /* BADGE */
+  .attitude-badge { background:rgba(255,45,120,0.1); border:1px solid var(--neon-pink); border-radius:8px; padding:8px 20px; font-size:0.8rem; color:var(--neon-pink); margin-top:12px; position:relative; z-index:1; animation:fadeInUp 0.7s 0.4s ease both; display:inline-block; }
+  #cake {
+  font-size: 5rem;
+  position: relative;
+}
+
+#candle {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 2rem;
+  transition: all 0.3s ease;
+}
+
+#blow-btn {
+  position: relative;
+}
+
+#cake.shake {
+  animation: shake 0.5s ease;
+}
+#candle {
+  position: absolute;
+  top: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 30px;
+  background: #fff;
+  border-radius: 2px;
+}
+
+.flame {
+  width: 14px;
+  height: 20px;
+  background: radial-gradient(circle, #ffd54f 20%, #ff6f00 70%);
+  border-radius: 50% 50% 50% 50%;
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: flicker 0.15s infinite;
+  box-shadow: 0 0 20px orange;
+}
+
+@keyframes flicker {
+  0% { transform: translateX(-50%) scale(1); opacity: 1; }
+  50% { transform: translateX(-50%) scale(1.2); opacity: 0.8; }
+  100% { transform: translateX(-50%) scale(0.9); opacity: 1; }
+}
+.air {
+  position: fixed;
+  width: 6px;
+  height: 6px;
+  background: rgba(255,255,255,0.8);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 300;
+  animation: airMove 0.8s linear forwards;
+}
+
+@keyframes airMove {
+  0% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(120px) scale(0.3);
+    opacity: 0;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+<div class="stars" id="stars"></div>
+<div class="overlay" id="overlay"></div>
+
+<!-- FAKE WARNING -->
+<div id="fake-warning">
+  <h3>⚠️ System Alert</h3>
+  <p>Dangerous levels of attitude detected.<br>Proceed with caution.</p>
+  <button class="btn btn-pink" onclick="closeWarning()">Fine, I get it 🙄</button>
+  <button class="btn btn-secondary" onclick="closeWarning()">Dismiss</button>
+</div>
+
+<!-- FAKE LOADING -->
+<div id="fake-loading">
+  <p style="color:rgba(255,255,255,0.5);font-size:0.85rem;margin-bottom:8px">Analyzing subject…</p>
+  <div style="font-size:1.1rem;color:var(--neon-blue);margin-bottom:4px" id="loading-label">Calculating personality…</div>
+  <div class="loading-bar-wrap"><div class="loading-bar" id="loading-bar"></div></div>
+  <div class="loading-text" id="loading-status">0%</div>
+</div>
+
+<div class="page-dots" id="page-dots"></div>
+
+<!-- PAGE 1 -->
+<div class="page active" id="p1">
+  <span class="eye-icon">👀</span>
+  <h1 class="big-title glitch neon-blue" data-text="Wait…">Wait…</h1>
+  <p class="sub-text">don't enter.</p>
+  <div class="divider"></div>
+  <button class="btn btn-primary" onclick="goTo(2)">Enter at your own risk →</button>
+</div>
+
+<!-- PAGE 2 -->
+<div class="page" id="p2">
+  <h1 class="big-title neon-purple">So… today is something.</h1>
+  <div class="divider"></div>
+  <p class="sub-text" style="margin-bottom:32px">Someone important was born today.</p>
+  <div class="btn-row">
+    <button class="btn btn-primary choice-glow" onclick="goTo(3)">Who? 🤔</button>
+    <button class="btn btn-secondary choice-glow" onclick="goTo(3)">I don't care 🙄</button>
+  </div>
+</div>
+
+<!-- PAGE 3 -->
+<div class="page" id="p3">
+  <span class="emoji-big">😏</span>
+  <h1 class="big-title">Okay fine…</h1>
+  <p class="sub-text" style="font-size:1.5rem;color:#fff;font-weight:600">it's <span class="neon-pink">YOU.</span></p>
+  <div class="divider" style="background:linear-gradient(90deg,transparent,var(--neon-pink),transparent)"></div>
+  <p class="big-title neon-purple" style="font-size:clamp(1.8rem,5vw,3rem)">Happy Birthday 🎉</p>
+  <br>
+  <button class="btn btn-purple" onclick="showFakeLoading()">Wait… there's more →</button>
+</div>
+
+<!-- PAGE 4 -->
+<div class="page" id="p4">
+  <span class="emoji-big">😈</span>
+  <h1 class="big-title neon-pink">Do NOT click next.</h1>
+  <p class="sub-text">I'm being serious this time.</p>
+  <div class="divider" style="background:linear-gradient(90deg,transparent,var(--neon-pink),transparent)"></div>
+  <br>
+  <button class="btn btn-pink" id="runaway-btn" onmouseenter="runAway(this)" ontouchstart="runAway(this)">Next →</button>
+</div>
+
+<!-- PAGE 5 -->
+<div class="page" id="p5">
+  <span class="emoji-big">😑</span>
+  <h1 class="big-title neon-purple">You really don't listen.</h1>
+  <div class="divider"></div>
+  <p class="sub-text">This is exactly why I get irritated.</p>
+  <p class="sub-text" style="font-size:0.85rem;opacity:0.5">...but also kind of expected this from you 😂</p>
+  <br>
+  <button class="btn btn-primary" onclick="goTo(6)">Okay sorry 🥺</button>
+</div>
+
+<!-- PAGE 6 -->
+<div class="page" id="p6">
+  <h1 class="big-title">Choose <span class="neon-blue">wisely</span>.</h1>
+  <div class="divider"></div>
+  <p class="sub-text" style="margin-bottom:32px">This determines your personality type.</p>
+  <div class="btn-row">
+    <button class="btn btn-primary choice-glow" onclick="goTo(7)" style="font-size:1.1rem;padding:16px 40px">I am amazing 😎</button>
+    <button class="btn btn-pink choice-glow"    onclick="goTo(7)" style="font-size:1.1rem;padding:16px 40px">I am annoying 😤</button>
+  </div>
+</div>
+
+<!-- PAGE 7 -->
+<div class="page" id="p7">
+  <span class="emoji-big">💖</span>
+  <h1 class="big-title">Correct answer:</h1>
+  <p class="sub-text" style="font-size:1.4rem;color:var(--neon-pink);font-weight:600">annoying 😤</p>
+  <div class="divider"></div>
+  <p class="sub-text" style="font-size:1.2rem;color:#fff">But also…<br><span class="neon-purple" style="font-weight:600">kinda amazing 💖</span></p>
+  <div class="attitude-badge">⚠️ System detected: too much attitude 😂</div>
+  <br>
+  <button class="btn btn-purple" onclick="goTo(8)" style="margin-top:16px">I'll take it →</button>
+</div>
+
+<!-- PAGE 8 -->
+<div class="page" id="p8">
+  <h1 class="big-title neon-blue" style="margin-bottom:8px">Some memories…</h1>
+  <p class="sub-text" style="margin-bottom:24px;font-size:0.9rem">...that live rent-free in my head.</p>
+  <div class="memory-card">Remember when we had that random 2am conversation that made zero sense but somehow made complete sense?</div>
+  <div class="memory-card">Or that one moment where you said something and we both just laughed for no real reason?</div>
+  <div class="memory-card">Or every single time you were annoying and somehow still made it work 😌</div>
+  <br>
+  <button class="btn btn-primary" onclick="goTo(9)">There's more →</button>
+</div>
+
+<!-- PAGE 9 -->
+<div class="page" id="p9">
+  <div class="cosmic-text" id="c1">Out of everyone in the world…</div>
+  <div class="cosmic-text" id="c2" style="font-size:clamp(1.5rem,4vw,2.2rem);color:#fff;font-weight:600">We somehow met.</div>
+  <div class="cosmic-text" id="c3" style="font-size:0.95rem;color:rgba(255,255,255,0.45)">And that's actually crazy.</div>
+  <br><br>
+  <button class="btn btn-primary" id="cosmic-btn" onclick="goTo(10)" style="opacity:0;transition:opacity 1s ease">Makes sense though →</button>
+</div>
+
+<!-- PAGE 10 -->
+<div class="page" id="p10">
+  <span class="emoji-big">😌</span>
+  <h1 class="big-title" style="font-size:clamp(1.6rem,5vw,3rem)">Now I have to<br><span class="neon-purple">tolerate you forever.</span></h1>
+  <div class="divider"></div>
+  <p class="sub-text">Not complaining though…</p>
+  <p class="sub-text" style="font-size:0.85rem;opacity:0.4">...okay maybe a little</p>
+  <br>
+  <button class="btn btn-purple" onclick="goTo(11)">Aww okay →</button>
+</div>
+
+<!-- PAGE 11 -->
+<div class="page" id="p11">
+  <h1 class="big-title neon-blue" style="margin-bottom:8px">Real talk though.</h1>
+  <div class="divider"></div>
+  <ul class="compliment-list" id="compliment-list">
+    <li>You're <span>strong</span> — even when you pretend you're not.</li>
+    <li>You're <span>fun</span> — in the most chaotic way possible.</li>
+    <li>You're <span>different</span> — and that's the best thing about you.</li>
+    <li>You're <span>worth it</span> — don't let anyone tell you otherwise.</li>
+  </ul>
+  <button class="btn btn-primary" id="compliment-btn" onclick="goTo(12)" style="opacity:0;transition:opacity 0.5s">Keep going →</button>
+</div>
+
+<!-- PAGE 12 -->
+<div class="page" id="p12">
+  <h1 class="big-title" style="font-size:clamp(2rem,6vw,4rem)">So yeah…</h1>
+  <div class="divider"></div>
+  <p class="sub-text" style="font-size:1.3rem">Stay the same. <span class="neon-blue">Stay weird.</span></p>
+  <p class="sub-text" style="font-size:1.5rem;color:#fff;font-weight:600">Stay <span class="neon-purple">YOU.</span></p>
+  <br>
+  <button class="btn btn-primary" onclick="goTo(13)">One last thing →</button>
+</div>
+
+<!-- PAGE 13 -->
+<div class="page" id="p13">
+  <div class="photo-frame">🎂</div>
+  <p class="sub-text" style="margin-bottom:4px;font-size:0.9rem;letter-spacing:3px;text-transform:uppercase;opacity:0.4">today is your day</p>
+  <h1 class="final-name">Happy Birthday</h1>
+  <h1 class="final-name">[Her Name] ❤️</h1>
+  <p class="sub-text" style="margin-top:20px;font-size:1rem">You deserve everything beautiful<br>this year and every year after.</p>
+  <div class="divider" style="background:linear-gradient(90deg,transparent,var(--neon-pink),transparent);margin-top:24px"></div>
+  <button class="btn btn-pink" onclick="goTo(14);startMicBlow() " style="margin-top:20px">
+  Final step 😏
+</button>
+</div>
+
+<!-- PAGE 14 (FINAL CHAOTIC CAKE) -->
+<div class="page" id="p14">
+  <h1 class="big-title neon-pink">Finally… cake time 🎂</h1>
+  <p class="sub-text">But obviously… it's not that easy 😌</p>
+
+  <div style="margin:30px 0; position:relative;">
+    <div id="cake">
+      🎂
+     <div id="candle">
+  <div class="flame"></div>
+</div>
+  </div>
+
+  <p class="sub-text" id="cake-text">Blow the candle… if you can 😏</p>
+
+  <button class="btn btn-primary" id="blow-btn" onclick="blowCandle()">
+    Blow 💨
+  </button>
+
+  <button class="btn btn-pink" id="cut-btn" onclick="cutCake()" style="display:none;">
+    Cut the cake 🍰
+  </button>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+  let currentPage = 1;
+  const TOTAL = 14;
+  let runawayClicks = 0;
+  let cosmicTimers = [];
+  let blowCount = 0;
+  let micStarted = false;
+
+  // DOTS
+  const dotsEl = document.getElementById('page-dots');
+  for (let i = 1; i <= TOTAL; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 1 ? ' active' : '');
+    d.id = 'dot' + i;
+    dotsEl.appendChild(d);
+  }
+
+  // STARS
+  const starsEl = document.getElementById('stars');
+  for (let i = 0; i < 80; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const sz = Math.random() * 2.5 + 0.5;
+    s.style.cssText = `width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;animation-delay:${Math.random()*4}s;animation-duration:${2+Math.random()*3}s;`;
+    starsEl.appendChild(s);
+  }
+
+  // NAVIGATION
+  window.goTo = function(n) {
+    document.getElementById('p' + currentPage).classList.remove('active');
+    document.getElementById('dot' + currentPage).classList.remove('active');
+
+    onPageLeave(currentPage);
+
+    currentPage = n;
+
+    document.getElementById('p' + n).classList.add('active');
+    document.getElementById('dot' + n).classList.add('active');
+
+    onPageEnter(n);
+  }
+
+  function onPageLeave(n) {
+    if (n === 4) {
+      const btn = document.getElementById('runaway-btn');
+      btn.style.position = 'relative';
+      btn.style.left = '';
+      btn.style.top = '';
+      runawayClicks = 0;
+    }
+
+    if (n === 9) {
+      cosmicTimers.forEach(t => clearTimeout(t));
+      cosmicTimers = [];
+      starsEl.classList.remove('show');
+      ['c1','c2','c3'].forEach(id => document.getElementById(id).classList.remove('show'));
+      document.getElementById('cosmic-btn').style.opacity = '0';
+    }
+
+    if (n === 11) {
+      document.querySelectorAll('#compliment-list li').forEach(el => el.classList.remove('show'));
+      document.getElementById('compliment-btn').style.opacity = '0';
+    }
+  }
+
+  function onPageEnter(n) {
+
+    if (n === 5) {
+      setTimeout(() => {
+        const p5 = document.getElementById('p5');
+        p5.classList.add('shake');
+        setTimeout(() => p5.classList.remove('shake'), 500);
+      }, 300);
+    }
+
+    if (n === 6) {
+      setTimeout(showWarningPopup, 1200);
+    }
+
+    if (n === 9) {
+      starsEl.classList.add('show');
+      ['c1','c2','c3'].forEach((id, i) => {
+        const t = setTimeout(() => document.getElementById(id).classList.add('show'), i * 700 + 200);
+        cosmicTimers.push(t);
+      });
+
+      const t = setTimeout(() => {
+        document.getElementById('cosmic-btn').style.opacity = '1';
+      }, 2400);
+      cosmicTimers.push(t);
+    }
+
+    if (n === 11) {
+      const items = document.querySelectorAll('#compliment-list li');
+      items.forEach((el, i) => setTimeout(() => el.classList.add('show'), i * 350 + 300));
+
+      setTimeout(() => {
+        document.getElementById('compliment-btn').style.opacity = '1';
+      }, items.length * 350 + 600);
+    }
+
+    if (n === 13) {
+      setTimeout(launchConfetti, 600);
+    }
+
+    if (n === 14) {
+      startMicBlow();
+      document.getElementById('cake-text').textContent =
+        "🎤 Blow on mic to turn off the candle… if you can 😏";
+    }
+  }
+
+  // LOADING
+  const loadMessages = [
+    'Calculating personality…',
+    'Measuring attitude levels…',
+    'Counting eye rolls…',
+    'Analyzing chaos index…',
+    'Processing birthday mode…'
+  ];
+
+  window.showFakeLoading = function() {
+    const el = document.getElementById('fake-loading');
+    const bar = document.getElementById('loading-bar');
+    const label = document.getElementById('loading-label');
+    const status = document.getElementById('loading-status');
+
+    bar.style.width = '0%';
+    status.textContent = '0%';
+    label.textContent = loadMessages[0];
+
+    el.style.display = 'flex';
+
+    let pct = 0;
+
+    const interval = setInterval(() => {
+      pct += Math.random() * 12 + 3;
+      if (pct > 100) pct = 100;
+
+      bar.style.width = pct + '%';
+      status.textContent = Math.floor(pct) + '%';
+      label.textContent = loadMessages[Math.min(Math.floor((pct / 100) * loadMessages.length), loadMessages.length - 1)];
+
+      if (pct >= 100) {
+        clearInterval(interval);
+        setTimeout(() => {
+          el.style.display = 'none';
+          goTo(4);
+        }, 500);
+      }
+    }, 120);
+  }
+
+  // RUNAWAY BUTTON
+  window.runAway = function(btn) {
+    runawayClicks++;
+    if (runawayClicks >= 4) {
+      goTo(5);
+      return;
+    }
+
+    const maxX = window.innerWidth - 150;
+    const maxY = window.innerHeight - 80;
+
+    btn.style.position = 'fixed';
+    btn.style.left = Math.random() * maxX + 'px';
+    btn.style.top = Math.random() * maxY + 'px';
+  }
+
+  // WARNING
+  function showWarningPopup() {
+    if (currentPage !== 6) return;
+    document.getElementById('overlay').style.display = 'block';
+    document.getElementById('fake-warning').style.display = 'block';
+  }
+
+  window.closeWarning = function() {
+    document.getElementById('overlay').style.display = 'none';
+    document.getElementById('fake-warning').style.display = 'none';
+  }
+
+  // CONFETTI (FIXED)
+  function launchConfetti() {
+    const colors = ['#00d4ff','#bf5fff','#ff2d78','#fff700','#00ff88','#ff6b35'];
+
+    for (let i = 0; i < 120; i++) {
+      const p = document.createElement('div');
+      p.className = 'confetti-piece';
+
+      const sz = 4 + Math.random() * 8;
+
+      p.style.cssText = `
+        left:${Math.random()*100}vw;
+        top:-10px;
+        background:${colors[Math.floor(Math.random()*colors.length)]};
+        width:${sz}px;
+        height:${sz}px;
+        border-radius:${Math.random()>0.5?'50%':'2px'};
+        animation-duration:${2+Math.random()*3}s;
+        animation-delay:${Math.random()*1.5}s;
+      `;
+
+      document.body.appendChild(p);
+      setTimeout(() => p.remove(), 6000);
+    }
+  }
+
+  // BLOW BUTTON
+  window.blowCandle = function() {
+    blowCount++;
+
+    const btn = document.getElementById('blow-btn');
+    const cake = document.getElementById('cake');
+    const candle = document.getElementById('candle');
+    const text = document.getElementById('cake-text');
+
+    btn.style.position = 'fixed';
+    btn.style.left = Math.random() * (window.innerWidth - 120) + 'px';
+    btn.style.top = Math.random() * (window.innerHeight - 60) + 'px';
+
+    cake.classList.add('shake');
+    setTimeout(() => cake.classList.remove('shake'), 500);
+
+    if (blowCount === 2) text.textContent = "Bro properly blow na 😂";
+    if (blowCount === 4) text.textContent = "Still not working… skill issue 😌";
+
+    if (blowCount === 6) {
+      text.textContent = "Fine… I'll help 🙄";
+      candle.innerHTML = "💨";
+
+      setTimeout(() => {
+        candle.style.display = "none";
+        text.textContent = "Finally 😤 now cut it.";
+        btn.style.display = "none";
+        document.getElementById('cut-btn').style.display = "inline-block";
+      }, 800);
+    }
+  }
+
+  window.cutCake = function() {
+    document.getElementById('cake-text').textContent = "Happy Birthday once again 🎉❤️";
+    launchConfetti();
+  }
+
+  function realBlowDetected() {
+    const flame = document.querySelector('.flame');
+    const candle = document.getElementById('candle');
+
+    if (!flame) return;
+
+    flame.style.opacity = "0";
+
+    setTimeout(() => {
+      candle.style.display = "none";
+      document.getElementById('cake-text').textContent =
+        "FINALLY 😤 now cut it 🍰";
+
+      document.getElementById('cut-btn').style.display = "inline-block";
+      document.getElementById('blow-btn').style.display = "none";
+    }, 400);
+  }
+
+window.startMicBlow = async function() {
+  if (micStarted) return;
+  micStarted = true;
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const source = audioContext.createMediaStreamSource(stream);
+
+    const analyser = audioContext.createAnalyser();
+    analyser.fftSize = 1024; // higher sensitivity
+
+    source.connect(analyser);
+
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+    let blowStrength = 0;
+
+    function detect() {
+      analyser.getByteTimeDomainData(dataArray);
+
+      let sum = 0;
+
+      for (let i = 0; i < dataArray.length; i++) {
+        let val = (dataArray[i] - 128) / 128;
+        sum += val * val;
+      }
+
+      let volume = Math.sqrt(sum / dataArray.length);
+
+      // 🔥 SUPER sensitive detection
+      if (volume > 0.10) {
+        blowStrength += 2;
+        createAirParticles(); // add effect while blowing
+      } else {
+        blowStrength = Math.max(0, blowStrength - 1);
+      }
+
+      // 🔥 easier trigger
+      if (blowStrength > 6 && !blowDetected) {
+        blowDetected = true;
+        realBlowDetected();
+        return;
+      }
+
+      requestAnimationFrame(detect);
+    }
+
+    detect();
+
+  } catch (e) {
+    document.getElementById('cake-text').textContent =
+      "Mic blocked 😒 Allow mic or use button";
+  }
+}
+});
+</script>
